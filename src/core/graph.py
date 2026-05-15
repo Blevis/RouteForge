@@ -22,6 +22,13 @@ class Graph:
     def __init__(self) -> None:
         self._adj: Dict[str, Dict[str, float]] = {}
 
+        self.positions = {} # node -> (x, y)
+    def set_position(self, node, x, y):
+        self.positions[node] = (x, y)
+
+    def get_position(self, node):
+        return self.positions.get(node, None)
+
     def add_node(self, node: str) -> None:
         """Add a node if it does not already exist."""
         if node not in self._adj:
