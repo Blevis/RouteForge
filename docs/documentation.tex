@@ -1,12 +1,12 @@
 % ============================================================
-%  RouteForge – Academic Project Report
+%  RouteForge - Academic Project Report
 %  Compile with: pdflatex -> bibtex -> pdflatex -> pdflatex
 %  or: latexmk -pdf routeforge_report.tex
 % ============================================================
 
 \documentclass[12pt, a4paper]{article}
 
-% ── Packages ────────────────────────────────────────────────
+% -- Packages ------------------------------------------------
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
@@ -39,7 +39,7 @@
 \usepackage{abstract}
 \usepackage{tocloft}
 
-% ── Hyperref setup ──────────────────────────────────────────
+% -- Hyperref setup ------------------------------------------
 \hypersetup{
     colorlinks   = true,
     linkcolor    = blue!60!black,
@@ -50,15 +50,15 @@
     pdfsubject   = {Data Structures and Algorithms},
 }
 
-% ── Line spacing ────────────────────────────────────────────
+% -- Line spacing --------------------------------------------
 \onehalfspacing
 
-% ── Section title formatting ────────────────────────────────
-\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}[\titrule]
+% -- Section title formatting --------------------------------
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}[\titlerule]
 \titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
 \titleformat{\subsubsection}{\normalsize\itshape}{\thesubsubsection}{1em}{}
 
-% ── Header / footer ─────────────────────────────────────────
+% -- Header / footer -----------------------------------------
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{\small RouteForge}
@@ -66,7 +66,7 @@
 \fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 
-% ── Code listing style ──────────────────────────────────────
+% -- Code listing style --------------------------------------
 \definecolor{codebg}{RGB}{245,247,250}
 \definecolor{codeframe}{RGB}{200,210,220}
 \definecolor{kwcolor}{RGB}{0,95,190}
@@ -100,7 +100,7 @@
 
 \lstset{style=python}
 
-% ── Theorem environments ────────────────────────────────────
+% -- Theorem environments ------------------------------------
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
 \theoremstyle{plain}
@@ -108,14 +108,14 @@
 \theoremstyle{remark}
 \newtheorem{remark}{Remark}[section]
 
-% ── Algorithmic customisation ───────────────────────────────
+% -- Algorithmic customisation -------------------------------
 \algrenewcommand\algorithmicprocedure{\textbf{procedure}}
 \algrenewcommand\algorithmicfunction{\textbf{function}}
 
-% ── Caption formatting ──────────────────────────────────────
+% -- Caption formatting --------------------------------------
 \captionsetup{font=small, labelfont=bf, skip=6pt}
 
-% ── Misc ────────────────────────────────────────────────────
+% -- Misc ----------------------------------------------------
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
 \newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
@@ -124,7 +124,7 @@
 \begin{document}
 % ============================================================
 
-% ── Title page ──────────────────────────────────────────────
+% -- Title page ----------------------------------------------
 \begin{titlepage}
     \centering
     \vspace*{2cm}
@@ -154,7 +154,7 @@
     {\large\today\par}
 \end{titlepage}
 
-% ── Abstract ────────────────────────────────────────────────
+% -- Abstract ------------------------------------------------
 \begin{abstract}
 \noindent
 RouteForge is an interactive graph construction and algorithm visualisation
@@ -226,25 +226,25 @@ directory tree is as follows:
 
 \begin{verbatim}
 RouteForge/
-├── main.py
-└── src/
-    ├── algorithms/
-    │   ├── bfs.py
-    │   ├── dfs.py
-    │   ├── dijkstra.py
-    │   ├── helpers.py
-    │   ├── kruskal.py
-    │   └── prim.py
-    ├── core/
-    │   ├── graph.py
-    │   └── validators.py
-    ├── data/
-    ├── ui/
-    │   └── menu.py
-    ├── utils/
-    │   └── graph_generator.py
-    └── visualization/
-        └── pygame_view.py
+|-- main.py
+`-- src/
+    |-- algorithms/
+    |   |-- bfs.py
+    |   |-- dfs.py
+    |   |-- dijkstra.py
+    |   |-- helpers.py
+    |   |-- kruskal.py
+    |   `-- prim.py
+    |-- core/
+    |   |-- graph.py
+    |   `-- validators.py
+    |-- data/
+    |-- ui/
+    |   `-- menu.py
+    |-- utils/
+    |   `-- graph_generator.py
+    `-- visualization/
+        `-- pygame_view.py
 \end{verbatim}
 
 \subsection{Dependency Graph}
