@@ -1,0 +1,925 @@
+% ============================================================
+%  RouteForge – Academic Project Report
+%  Compile with: pdflatex -> bibtex -> pdflatex -> pdflatex
+%  or: latexmk -pdf routeforge_report.tex
+% ============================================================
+
+\documentclass[12pt, a4paper]{article}
+
+% ── Packages ────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[british]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{titletoc}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{abstract}
+\usepackage{tocloft}
+
+% ── Hyperref setup ──────────────────────────────────────────
+\hypersetup{
+    colorlinks   = true,
+    linkcolor    = blue!60!black,
+    citecolor    = green!50!black,
+    urlcolor     = blue!70!black,
+    pdftitle     = {RouteForge: A Graph Algorithm Visualisation System},
+    pdfauthor    = {},
+    pdfsubject   = {Data Structures and Algorithms},
+}
+
+% ── Line spacing ────────────────────────────────────────────
+\onehalfspacing
+
+% ── Section title formatting ────────────────────────────────
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}[\titrule]
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{\thesubsubsection}{1em}{}
+
+% ── Header / footer ─────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small RouteForge}
+\fancyhead[R]{\small Data Structures \& Algorithms}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Code listing style ──────────────────────────────────────
+\definecolor{codebg}{RGB}{245,247,250}
+\definecolor{codeframe}{RGB}{200,210,220}
+\definecolor{kwcolor}{RGB}{0,95,190}
+\definecolor{strcolor}{RGB}{160,30,30}
+\definecolor{cmtcolor}{RGB}{100,115,130}
+\definecolor{numcolor}{RGB}{100,60,160}
+
+\lstdefinestyle{python}{
+    language         = Python,
+    backgroundcolor  = \color{codebg},
+    frame            = single,
+    rulecolor        = \color{codeframe},
+    basicstyle       = \ttfamily\footnotesize,
+    keywordstyle     = \color{kwcolor}\bfseries,
+    stringstyle      = \color{strcolor},
+    commentstyle     = \color{cmtcolor}\itshape,
+    numberstyle      = \tiny\color{numcolor},
+    numbers          = left,
+    numbersep        = 8pt,
+    stepnumber       = 1,
+    tabsize          = 4,
+    showstringspaces = false,
+    breaklines       = true,
+    breakatwhitespace= true,
+    captionpos       = b,
+    aboveskip        = 8pt,
+    belowskip        = 4pt,
+    xleftmargin      = 14pt,
+    framexleftmargin = 14pt,
+}
+
+\lstset{style=python}
+
+% ── Theorem environments ────────────────────────────────────
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}[section]
+
+% ── Algorithmic customisation ───────────────────────────────
+\algrenewcommand\algorithmicprocedure{\textbf{procedure}}
+\algrenewcommand\algorithmicfunction{\textbf{function}}
+
+% ── Caption formatting ──────────────────────────────────────
+\captionsetup{font=small, labelfont=bf, skip=6pt}
+
+% ── Misc ────────────────────────────────────────────────────
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+% ── Title page ──────────────────────────────────────────────
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+
+    {\Large\textsc{Year 2 -- Data Structures \& Algorithms}\par}
+    \vspace{0.5cm}
+    {\large\textsc{Project Report}\par}
+
+    \vspace{1.5cm}
+    \rule{\linewidth}{1pt}\\[0.6em]
+    {\Huge\bfseries RouteForge\par}
+    \vspace{0.3em}
+    {\Large A Graph Algorithm Visualisation System\par}
+    \rule{\linewidth}{1pt}
+
+    \vspace{2cm}
+
+    \begin{tabular}{rl}
+        \textbf{Module:}      & Data Structures \& Algorithms \\[4pt]
+        \textbf{Language:}    & Python 3.11+ \\[4pt]
+        \textbf{Framework:}   & pygame 2.x \\[4pt]
+        \textbf{Repository:}  & RouteForge \\
+    \end{tabular}
+
+    \vfill
+
+    {\large\today\par}
+\end{titlepage}
+
+% ── Abstract ────────────────────────────────────────────────
+\begin{abstract}
+\noindent
+RouteForge is an interactive graph construction and algorithm visualisation
+system implemented in Python. The project provides a modular architecture
+separating the core graph data structure, algorithmic implementations, a
+command-line interface, and a real-time pygame-based graphical visualiser.
+Five classical graph algorithms are implemented: Breadth-First Search (BFS),
+Depth-First Search (DFS), Dijkstra's shortest-path algorithm, Prim's minimum
+spanning tree (MST), and Kruskal's MST. The visualiser supports step-by-step
+animated playback of BFS, DFS, and Dijkstra with interactive controls,
+enabling inspection of frontier evolution, edge relaxation, and shortest-path
+reconstruction. A random graph generator is included to facilitate rapid
+testing. This report describes the system architecture, data structures,
+algorithmic design, complexity analysis, and implementation decisions.
+\end{abstract}
+
+\vspace{1em}
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Introduction}
+% ============================================================
+
+Graph theory underpins a broad class of real-world problems, from network
+routing and social-network analysis to geographic pathfinding and dependency
+resolution. Understanding how fundamental graph algorithms operate is a core
+competency in computer science education; yet the abstract nature of queue and
+priority-queue mechanics, visited sets, and predecessor maps often makes
+comprehension difficult from code or pseudocode alone.
+
+RouteForge addresses this gap by coupling correct, modular algorithm
+implementations with an interactive step-by-step visualiser. The system is
+designed around three principles:
+
+\begin{enumerate}[label=(\roman*)]
+    \item \textbf{Separation of concerns} -- the graph data structure, the
+          algorithms, the CLI, and the visualiser are entirely independent
+          modules.
+    \item \textbf{Correctness first} -- each algorithm is implemented
+          faithfully to its canonical form; the visualiser replicates the
+          algorithm logic internally rather than instrumenting or modifying the
+          production algorithm code.
+    \item \textbf{Interactivity} -- the user can construct arbitrary graphs,
+          generate random instances, and animate algorithms at configurable
+          speeds, stepping forwards and backwards through execution.
+\end{enumerate}
+
+The remainder of this report is structured as follows. Section~\ref{sec:arch}
+describes the overall system architecture and module layout.
+Section~\ref{sec:ds} details the graph data structure and supporting types.
+Section~\ref{sec:validation} covers the input validation layer.
+Sections~\ref{sec:bfs}--\ref{sec:mst} present each algorithm with
+pseudocode, implementation notes, and complexity analysis.
+Section~\ref{sec:viz} describes the visualiser design, animation model, and
+interaction system. Section~\ref{sec:generator} covers the random graph
+generator. Section~\ref{sec:cli} describes the CLI. Section~\ref{sec:conc}
+concludes with reflections and potential extensions.
+
+% ============================================================
+\section{System Architecture}
+\label{sec:arch}
+% ============================================================
+
+\subsection{Module Layout}
+
+The project is organised as a Python package rooted at \texttt{src/}. The
+directory tree is as follows:
+
+\begin{verbatim}
+RouteForge/
+├── main.py
+└── src/
+    ├── algorithms/
+    │   ├── bfs.py
+    │   ├── dfs.py
+    │   ├── dijkstra.py
+    │   ├── helpers.py
+    │   ├── kruskal.py
+    │   └── prim.py
+    ├── core/
+    │   ├── graph.py
+    │   └── validators.py
+    ├── data/
+    ├── ui/
+    │   └── menu.py
+    ├── utils/
+    │   └── graph_generator.py
+    └── visualization/
+        └── pygame_view.py
+\end{verbatim}
+
+\subsection{Dependency Graph}
+
+The inter-module dependency structure is intentionally acyclic and layered:
+
+\begin{itemize}
+    \item \texttt{src/core/} has no internal dependencies; it defines the
+          foundation types used by all other layers.
+    \item \texttt{src/algorithms/} depends only on \texttt{src/core/}.
+    \item \texttt{src/utils/} depends only on \texttt{src/core/}.
+    \item \texttt{src/ui/} depends on \texttt{src/core/},
+          \texttt{src/algorithms/}, \texttt{src/utils/}, and
+          \texttt{src/visualization/}.
+    \item \texttt{src/visualization/} depends on \texttt{src/core/} and
+          \texttt{src/core/validators}.
+    \item \texttt{main.py} depends only on \texttt{src/ui/menu.py}.
+\end{itemize}
+
+This layering ensures that the core graph and algorithm modules can be tested
+and used independently of the interface layers.
+
+\subsection{Validation Architecture}
+
+Input validation is partitioned across three layers, each responsible for a
+distinct class of invariant:
+
+\begin{table}[H]
+\centering
+\caption{Validation responsibility by layer.}
+\begin{tabularx}{\linewidth}{@{}L{3cm}L{4.5cm}L{6cm}@{}}
+\toprule
+\textbf{Layer} & \textbf{Module} & \textbf{Responsibility} \\
+\midrule
+Domain rules   & \texttt{validators.py} & Node name format, weight range,
+                                          NaN/Inf rejection, self-loop
+                                          prevention \\
+Structural     & \texttt{graph.py}      & Node existence, auto-creation of
+                                          endpoints, adjacency consistency \\
+UI/interaction & \texttt{pygame\_view.py} & Scroll-wheel guard, click blocking
+                                           during input, decimal deduplication,
+                                           surface \texttt{ValueError} messages
+                                           to the user \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ============================================================
+\section{Core Data Structures}
+\label{sec:ds}
+% ============================================================
+
+\subsection{Graph Representation}
+
+\begin{definition}[Weighted Undirected Graph]
+A weighted undirected graph is a triple $G = (V, E, w)$ where $V$ is a finite
+set of vertices, $E \subseteq \{\{u,v\} : u,v \in V,\ u \neq v\}$ is the
+edge set, and $w : E \to \mathbb{R}_{\geq 0}$ is the weight function.
+\end{definition}
+
+RouteForge represents $G$ using an \emph{adjacency list} stored as a nested
+Python dictionary:
+
+\[
+    \texttt{\_adj} : \text{str} \;\to\; (\text{str} \;\to\; \text{float})
+\]
+
+Each outer key is a node name; its value is a dictionary mapping neighbour
+names to edge weights. Every undirected edge $\{u,v,w\}$ is stored as two
+directed entries: \texttt{\_adj[u][v] = w} and \texttt{\_adj[v][u] = w}.
+
+\subsubsection{Choice of Adjacency List}
+
+An adjacency matrix would offer $O(1)$ edge lookup but requires $O(|V|^2)$
+space and is poorly suited to dynamic graphs. The adjacency list provides:
+
+\begin{table}[H]
+\centering
+\caption{Time complexity of core \texttt{Graph} operations.}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Operation} & \textbf{Complexity} & \textbf{Notes} \\
+\midrule
+\texttt{add\_node}    & $O(1)$          & Dict insert \\
+\texttt{add\_edge}    & $O(1)$          & Two dict inserts + validation \\
+\texttt{remove\_node} & $O(\deg(v))$   & Must remove reverse entries \\
+\texttt{remove\_edge} & $O(1)$          & Two dict deletes \\
+\texttt{has\_node}    & $O(1)$          & Dict membership \\
+\texttt{has\_edge}    & $O(1)$          & Nested dict membership \\
+\texttt{neighbors}    & $O(\deg(v))$   & List of (neighbour, weight) \\
+\texttt{edges}        & $O(|V|+|E|)$   & Deduplication via canonical key \\
+Space                 & $O(|V|+|E|)$   & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Edge Dataclass}
+
+Edges are returned as instances of an immutable, hashable \texttt{Edge}
+dataclass:
+
+\begin{lstlisting}[caption={Edge dataclass definition.}]
+@dataclass(frozen=True)
+class Edge:
+    u: str
+    v: str
+    weight: float
+\end{lstlisting}
+
+The \texttt{frozen=True} flag makes \texttt{Edge} instances immutable and
+hashable, enabling their use in sets and as dictionary keys. The
+\texttt{edges()} method deduplicates using a canonical key
+$(\min(u,v),\, \max(u,v))$, ensuring each undirected edge appears exactly
+once regardless of the order in which endpoints are passed to
+\texttt{add\_edge}.
+
+\subsection{Position Storage}
+
+The \texttt{Graph} class maintains a secondary dictionary
+\texttt{positions : str $\to$ (int, int)} mapping node names to pixel
+coordinates. This coupling is a pragmatic design choice: keeping positions on
+the graph object means the visualiser receives a fully self-contained graph
+when the CLI passes it to \texttt{GraphVisualizer}, with no need for a
+separate coordinate store. The \texttt{remove\_node} method clears the
+associated position entry to prevent stale data.
+
+\subsection{Disjoint Set (Union-Find)}
+
+Kruskal's algorithm requires a disjoint-set data structure to detect cycles
+efficiently. The \texttt{DisjointSet} class in \texttt{kruskal.py} implements
+union by rank with path compression:
+
+\begin{lstlisting}[caption={Disjoint-Set with path compression and union by rank.}]
+class DisjointSet:
+    def __init__(self, items):
+        self.parent = {item: item for item in items}
+        self.rank   = {item: 0    for item in items}
+
+    def find(self, x):
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])  # path compression
+        return self.parent[x]
+
+    def union(self, a, b):
+        root_a, root_b = self.find(a), self.find(b)
+        if root_a == root_b:
+            return False                                 # same component
+        if self.rank[root_a] < self.rank[root_b]:
+            self.parent[root_a] = root_b
+        elif self.rank[root_a] > self.rank[root_b]:
+            self.parent[root_b] = root_a
+        else:
+            self.parent[root_b] = root_a
+            self.rank[root_a]  += 1
+        return True
+\end{lstlisting}
+
+With path compression and union by rank, the amortised cost of $m$ union-find
+operations on $n$ elements is $O(m\,\alpha(n))$, where $\alpha$ is the
+inverse Ackermann function, effectively constant for all practical inputs.
+
+% ============================================================
+\section{Input Validation}
+\label{sec:validation}
+% ============================================================
+
+\subsection{Overview}
+
+The \texttt{validators.py} module centralises all domain-level input rules.
+Every entry point that mutates the graph (\texttt{add\_node},
+\texttt{add\_edge}) calls the appropriate validator before any structural
+change occurs. The UI layer calls \texttt{validate\_weight} independently so
+it can display a precise error message before invoking \texttt{add\_edge}.
+
+\subsection{Node Name Validation}
+
+\texttt{validate\_node\_name(name)} enforces:
+\begin{itemize}
+    \item Non-empty string.
+    \item Maximum length of 16 characters.
+    \item Characters restricted to \texttt{[a-zA-Z0-9\_-]}.
+\end{itemize}
+
+\subsection{Weight Validation}
+
+\texttt{validate\_weight(weight)} enforces:
+\begin{itemize}
+    \item Must be a numeric type (\texttt{int} or \texttt{float}).
+    \item Must not be \texttt{NaN} or $\pm\infty$.
+    \item Must lie within $[0.0,\; 10^6]$.
+\end{itemize}
+
+\subsection{Edge Validation}
+
+\texttt{validate\_edge(u, v, weight)} is a convenience wrapper that calls
+\texttt{validate\_edge\_nodes} (which validates both node names and enforces
+no self-loops) followed by \texttt{validate\_weight}.
+
+All validators raise \texttt{ValueError} with descriptive messages on
+failure. The UI layer catches these exceptions and renders the message in the
+status bar, ensuring no crash occurs and the user receives actionable feedback.
+
+% ============================================================
+\section{Breadth-First Search}
+\label{sec:bfs}
+% ============================================================
+
+\subsection{Algorithm Description}
+
+Breadth-First Search explores a graph level by level, visiting all neighbours
+of a node before proceeding to their neighbours. It uses a FIFO queue to
+maintain the frontier.
+
+\begin{algorithm}[H]
+\caption{Breadth-First Search}
+\begin{algorithmic}[1]
+\Function{BFS}{$G$, $start$}
+    \State $visited \gets \{start\}$
+    \State $queue \gets \langle start \rangle$
+    \State $order \gets []$
+    \While{$queue \neq \emptyset$}
+        \State $node \gets$ \Call{Dequeue}{$queue$}
+        \State $order.\textsc{Append}(node)$
+        \For{each $(neighbour, \_)$ in \textsc{SortedNeighbours}($G$, $node$)}
+            \If{$neighbour \notin visited$}
+                \State $visited.\textsc{Add}(neighbour)$
+                \State \Call{Enqueue}{$queue$, $neighbour$}
+            \EndIf
+        \EndFor
+    \EndWhile
+    \Return $order$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Implementation Notes}
+
+The implementation uses \texttt{collections.deque} for $O(1)$ \texttt{popleft}
+operations (a Python \texttt{list} used as a queue would give $O(n)$
+\texttt{pop(0)}). Neighbours are sorted lexicographically to produce a
+deterministic traversal order, which is important for testability.
+
+\begin{lstlisting}[caption={BFS implementation (\texttt{src/algorithms/bfs.py}).}]
+def bfs(graph: Graph, start: str) -> List[str]:
+    if not graph.has_node(start):
+        raise KeyError(f"Start node '{start}' does not exist.")
+
+    visited = set([start])
+    queue   = deque([start])
+    order: List[str] = []
+
+    while queue:
+        node = queue.popleft()
+        order.append(node)
+
+        for neighbor, _ in sorted(graph.neighbors(node), key=lambda x: x[0]):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)
+
+    return order
+\end{lstlisting}
+
+\subsection{Complexity Analysis}
+
+\begin{table}[H]
+\centering
+\caption{BFS complexity.}
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & \textbf{Time} & \textbf{Space} \\
+\midrule
+BFS & $O(|V| + |E|)$ & $O(|V|)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Each node is enqueued and dequeued at most once ($O(|V|)$). Each edge is
+examined at most twice ($O(|E|)$). The \texttt{visited} set and queue together
+hold at most $O(|V|)$ elements.
+
+% ============================================================
+\section{Depth-First Search}
+\label{sec:dfs}
+% ============================================================
+
+\subsection{Algorithm Description}
+
+Depth-First Search explores as far as possible along each branch before
+backtracking. The implementation uses an explicit stack (iterative DFS) to
+avoid Python's recursion depth limit.
+
+\begin{algorithm}[H]
+\caption{Depth-First Search (Iterative)}
+\begin{algorithmic}[1]
+\Function{DFS}{$G$, $start$}
+    \State $visited \gets \emptyset$
+    \State $stack \gets [start]$
+    \State $order \gets []$
+    \While{$stack \neq \emptyset$}
+        \State $node \gets stack.\textsc{Pop}()$
+        \If{$node \in visited$}
+            \State \textbf{continue}
+        \EndIf
+        \State $visited.\textsc{Add}(node)$
+        \State $order.\textsc{Append}(node)$
+        \For{each $(neighbour, \_)$ in \textsc{ReverseSortedNeighbours}($G$, $node$)}
+            \If{$neighbour \notin visited$}
+                \State $stack.\textsc{Push}(neighbour)$
+            \EndIf
+        \EndFor
+    \EndWhile
+    \Return $order$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Implementation Notes}
+
+Neighbours are pushed in reverse-sorted order so that the lexicographically
+smallest neighbour is on top of the stack and explored first, matching the
+traversal order of a recursive DFS. The visited check on \texttt{pop} (rather
+than on \texttt{push}) is correct for iterative DFS: a node may be pushed
+multiple times before it is first visited, so the check must occur at the
+point of expansion.
+
+\begin{lstlisting}[caption={DFS implementation (\texttt{src/algorithms/dfs.py}).}]
+def dfs(graph: Graph, start: str) -> List[str]:
+    if not graph.has_node(start):
+        raise KeyError(f"Start node '{start}' does not exist.")
+
+    visited = set()
+    stack   = [start]
+    order: List[str] = []
+
+    while stack:
+        node = stack.pop()
+        if node in visited:
+            continue
+        visited.add(node)
+        order.append(node)
+
+        neighbors = sorted(graph.neighbors(node),
+                           key=lambda x: x[0], reverse=True)
+        for neighbor, _ in neighbors:
+            if neighbor not in visited:
+                stack.append(neighbor)
+
+    return order
+\end{lstlisting}
+
+\subsection{Complexity Analysis}
+
+\begin{table}[H]
+\centering
+\caption{DFS complexity.}
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & \textbf{Time} & \textbf{Space} \\
+\midrule
+DFS & $O(|V| + |E|)$ & $O(|V|)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================================
+\section{Dijkstra's Shortest-Path Algorithm}
+\label{sec:dijkstra}
+% ============================================================
+
+\subsection{Algorithm Description}
+
+Dijkstra's algorithm computes single-source shortest paths in a graph with
+non-negative edge weights. It maintains a min-priority queue of (distance,
+node) pairs and greedily expands the closest unvisited node.
+
+\begin{algorithm}[H]
+\caption{Dijkstra's Algorithm}
+\begin{algorithmic}[1]
+\Function{Dijkstra}{$G$, $start$}
+    \State $dist[v] \gets \infty$ for all $v \in V$; $\;dist[start] \gets 0$
+    \State $prev[v] \gets \textsc{None}$ for all $v \in V$
+    \State $pq \gets \{(0, start)\}$
+    \State $visited \gets \emptyset$
+    \While{$pq \neq \emptyset$}
+        \State $(d, node) \gets \textsc{ExtractMin}(pq)$
+        \If{$node \in visited$}
+            \State \textbf{continue}
+        \EndIf
+        \State $visited.\textsc{Add}(node)$
+        \For{each $(neighbour, weight)$ in $\text{Neighbours}(G, node)$}
+            \State $d' \gets d + weight$
+            \If{$d' < dist[neighbour]$}
+                \State $dist[neighbour] \gets d'$
+                \State $prev[neighbour] \gets node$
+                \State $pq.\textsc{Insert}(d', neighbour)$
+            \EndIf
+        \EndFor
+    \EndWhile
+    \Return $dist$, $prev$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Path Reconstruction}
+
+The \texttt{reconstruct\_path} helper in \texttt{helpers.py} traverses the
+predecessor map backwards from the end node, collecting nodes until the start
+is reached, then reverses the list:
+
+\begin{lstlisting}[caption={Path reconstruction (\texttt{src/algorithms/helpers.py}).}]
+def reconstruct_path(previous, start, end):
+    path, current = [], end
+    while current is not None:
+        path.append(current)
+        if current == start:
+            break
+        current = previous.get(current)
+    if not path or path[-1] != start:
+        return None
+    path.reverse()
+    return path
+\end{lstlisting}
+
+If the end node is unreachable, \texttt{previous[end]} will remain
+\texttt{None} and the traversal will terminate without reaching \texttt{start},
+so \texttt{None} is returned.
+
+\subsection{Implementation Notes}
+
+The implementation uses Python's \texttt{heapq} module, which provides a
+binary min-heap. Lazy deletion is used: when a shorter path to a node is
+found, a new entry is pushed onto the heap without removing the old entry.
+Stale entries are discarded by the check for settled vertices.
+
+\begin{lstlisting}[caption={Dijkstra core (\texttt{src/algorithms/dijkstra.py}).}]
+def dijkstra(graph, start):
+    distances = {node: float("inf") for node in graph.nodes()}
+    previous  = {node: None         for node in graph.nodes()}
+    distances[start] = 0.0
+    pq      = [(0.0, start)]
+    visited = set()
+
+    while pq:
+        current_dist, node = heapq.heappop(pq)
+        if node in visited:
+            continue
+        visited.add(node)
+        for neighbor, weight in graph.neighbors(node):
+            new_dist = current_dist + weight
+            if new_dist < distances[neighbor]:
+                distances[neighbor] = new_dist
+                previous[neighbor]  = node
+                heapq.heappush(pq, (new_dist, neighbor))
+
+    return distances, previous
+\end{lstlisting}
+
+\subsection{Complexity Analysis}
+
+With a binary heap and an adjacency list:
+
+\begin{table}[H]
+\centering
+\caption{Dijkstra complexity.}
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & \textbf{Time} & \textbf{Space} \\
+\midrule
+Dijkstra (binary heap) & $O((|V|+|E|)\log|V|)$ & $O(|V|)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+With lazy deletion, up to $O(|E|)$ entries may reside in the heap
+simultaneously, giving a heap size of $O(|E|)$ and each extraction costing
+$O(\log|E|) = O(\log|V|)$ for sparse graphs.
+
+\subsection{Correctness Condition}
+
+\begin{theorem}
+Dijkstra's algorithm is correct for graphs with non-negative edge weights.
+\end{theorem}
+
+The invariant is maintained throughout: when a node $u$ is extracted from the
+priority queue, $dist[u]$ holds the true shortest-path distance from
+$start$ to $u$. This is guaranteed because all edge weights are
+non-negative, so no future relaxation can produce a shorter path to an already
+settled node. The \texttt{validators.py} weight check ($w \geq 0$) enforces
+this precondition at graph construction time.
+
+% ============================================================
+\section{Minimum Spanning Tree Algorithms}
+\label{sec:mst}
+% ============================================================
+
+\subsection{Prim's Algorithm}
+
+\subsubsection{Description}
+
+Prim's algorithm grows the MST one edge at a time by repeatedly selecting the
+minimum-weight edge that connects a visited node to an unvisited node. It is a
+greedy algorithm whose correctness follows from the Cut Property of MSTs.
+
+\begin{algorithm}[H]
+\caption{Prim's MST}
+\begin{algorithmic}[1]
+\Function{PrimMST}{$G$, $start$}
+    \State $visited \gets \{start\}$
+    \State $mst \gets []$
+    \State $pq \gets \emptyset$
+    \For{each $(neighbour, w)$ in \textsc{Neighbours}($G$, $start$)}
+        \State $pq.\textsc{Insert}(w, start, neighbour)$
+    \EndFor
+    \While{$pq \neq \emptyset$ \textbf{and} $|visited| < |V|$}
+        \State $(w, u, v) \gets \textsc{ExtractMin}(pq)$
+        \If{$v \in visited$}
+            \State \textbf{continue}
+        \EndIf
+        \State $visited.\textsc{Add}(v)$
+        \State $mst.\textsc{Append}(\textsc{Edge}(u,v,w))$
+        \For{each $(neighbour, wt)$ in \textsc{Neighbours}($G$, $v$)}
+            \If{$neighbour \notin visited$}
+                \State $pq.\textsc{Insert}(wt, v, neighbour)$
+            \EndIf
+        \EndFor
+    \EndWhile
+    \Return $mst$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Complexity}
+
+\begin{table}[H]
+\centering
+\caption{Prim's algorithm complexity (binary heap).}
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & \textbf{Time} & \textbf{Space} \\
+\midrule
+Prim (binary heap) & $O(|E|\log|V|)$ & $O(|V|+|E|)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Kruskal's Algorithm}
+
+\subsubsection{Description}
+
+Kruskal's algorithm processes all edges in ascending weight order, adding each
+edge to the MST if and only if it connects two previously disconnected
+components. Component tracking is delegated to the \texttt{DisjointSet}
+structure described in Section~\ref{sec:ds}.
+
+\begin{algorithm}[H]
+\caption{Kruskal's MST}
+\begin{algorithmic}[1]
+\Function{KruskalMST}{$G$}
+    \State $ds \gets \textsc{DisjointSet}(V)$
+    \State $edges \gets \textsc{SortedByWeight}(E)$
+    \State $mst \gets []$
+    \For{each $e = (u, v, w)$ in $edges$}
+        \If{\textsc{Union}($ds$, $u$, $v$)}
+            \State $mst.\textsc{Append}(e)$
+            \If{$|mst| = |V|-1$}
+                \State \textbf{break}
+            \EndIf
+        \EndIf
+    \EndFor
+    \Return $mst$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Early Termination}
+
+The loop breaks as soon as $|V|-1$ edges have been accepted, since a spanning
+tree on $|V|$ nodes has exactly $|V|-1$ edges. This avoids processing the
+remaining (necessarily rejected) edges.
+
+\subsubsection{Complexity}
+
+\begin{table}[H]
+\centering
+\caption{Kruskal's algorithm complexity.}
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & \textbf{Time} & \textbf{Space} \\
+\midrule
+Kruskal & $O(|E|\log|E|)$ & $O(|V|)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The dominant cost is sorting the edges: $O(|E|\log|E|)$. Each union-find
+operation is effectively $O(1)$ amortised.
+
+\subsection{Comparison of MST Algorithms}
+
+\begin{table}[H]
+\centering
+\caption{Prim vs. Kruskal comparison.}
+\begin{tabularx}{\linewidth}{@{}L{3.2cm}L{4.5cm}L{5cm}@{}}
+\toprule
+\textbf{Property} & \textbf{Prim} & \textbf{Kruskal} \\
+\midrule
+Approach        & Vertex-centric, grows one connected component & Edge-centric, merges components \\
+Data structure  & Min-heap                                       & Disjoint-set + sorted edge list \\
+Preferred for   & Dense graphs ($|E| \approx |V|^2$)            & Sparse graphs ($|E| \approx |V|$) \\
+Requires        & Connected graph (from start)                   & Works on forests \\
+Start node      & Required (defaults to first node)              & Not required \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ============================================================
+\section{Graph Visualiser}
+\label{sec:viz}
+% ============================================================
+
+\subsection{Overview}
+
+The visualiser (\texttt{src/visualization/pygame\_view.py}) is a self-contained
+pygame application that supports two primary modes:
+
+\begin{description}
+    \item[\textbf{Edit mode}] The user constructs a graph interactively:
+          left-clicking empty canvas space creates a node; clicking two nodes
+          in sequence initiates an edge, with weight entered via a floating
+          on-canvas input box.
+    \item[\textbf{Algorithm mode}] BFS, DFS, or Dijkstra is animated
+          step-by-step with full playback controls.
+\end{description}
+
+\subsection{Interaction State Machine}
+
+The visualiser maintains a string-valued mode variable with four states:
+
+\begin{table}[H]
+\centering
+\caption{Visualiser mode states.}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{State} & \textbf{Trigger} & \textbf{Description} \\
+\midrule
+\texttt{"edit"}       & Initial / Reset (\texttt{R})     & Graph editing enabled \\
+\texttt{"pick\_start"}& \texttt{B}, \texttt{D}, or \texttt{K} & Awaiting start node click \\
+\texttt{"pick\_end"}  & Start node chosen (Dijkstra only)& Awaiting end node click \\
+\texttt{"algo"}       & Both nodes chosen                & AlgoPlayer active \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Transitions between states are one-directional except for the global
+\texttt{Escape}/\texttt{R} reset that returns unconditionally to
+\texttt{"edit"}.
+
+\subsection{Animation Model}
+
+The \texttt{AlgoStep} dataclass captures a complete snapshot of the algorithm
+state at one point in execution:
+
+\begin{lstlisting}[caption={AlgoStep dataclass.}]
+@dataclass
+class AlgoStep:
+    visited     : Set[str]
+    frontier    : Set[str]
+    active_node : Optional[str]
+    active_edges: Set[Tuple[str, str]]
+    active_edge : Optional[Tuple[str, str]]
+    dist_labels : Dict[str, str]          # Dijkstra only
+    path_nodes  : Set[str]                # Dijkstra final step
+    path_edges  : Set[Tuple[str, str]]    # Dijkstra final step
+    description : str
+\end{lstlisting}
+
+\end{document}

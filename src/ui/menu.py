@@ -34,7 +34,7 @@ class Menu:
             elif choice == "9":
                 self.load_random_graph()
             elif choice == "10":
-                self.visualize()
+                self.open_visualizer()
             elif choice == "0":
                 print("Exiting RouteForge...")
                 break
@@ -54,7 +54,7 @@ class Menu:
         print("7. Minimum Spanning Tree (Prim)")
         print("8. Minimum Spanning Tree (Kruskal)")
         print("9. Generate Random Graph")
-        print("10. Visualize Graph (pygame)")
+        print("10. Open Graph Visualizer (pygame)")
         print("0. Exit")
 
     # -------------------------
@@ -137,9 +137,9 @@ class Menu:
 
         self.graph = generate_random_graph()
         print("Random graph generated.")
-    
-    def visualize(self):
+
+    def open_visualizer(self):
         from src.visualization.pygame_view import GraphVisualizer
 
         viz = GraphVisualizer(self.graph)
-        viz.draw()
+        viz.run()
