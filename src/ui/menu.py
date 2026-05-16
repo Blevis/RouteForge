@@ -4,6 +4,7 @@ from src.algorithms.dfs import dfs
 from src.algorithms.dijkstra import shortest_path
 from src.algorithms.prim import prim_mst
 from src.algorithms.kruskal import kruskal_mst
+from src.utils.graph_io import list_sample_graphs, load_graph
 
 
 class Menu:
@@ -35,6 +36,12 @@ class Menu:
                 self.load_random_graph()
             elif choice == "10":
                 self.open_visualizer()
+            elif choice == "11":
+                self.remove_node()
+            elif choice == "12":
+                self.remove_edge()
+            elif choice == "13":
+                self.load_sample_graph()
             elif choice == "0":
                 print("Exiting RouteForge...")
                 break
@@ -55,6 +62,9 @@ class Menu:
         print("8. Minimum Spanning Tree (Kruskal)")
         print("9. Generate Random Graph")
         print("10. Open Graph Visualizer (pygame)")
+        print("11. Remove Node")
+        print("12. Remove Edge")
+        print("13. Load Sample Graph")
         print("0. Exit")
 
     # -------------------------
@@ -63,8 +73,11 @@ class Menu:
 
     def add_node(self):
         node = input("Enter node name: ").strip()
-        self.graph.add_node(node)
-        print(f"Node '{node}' added.")
+        try:
+            self.graph.add_node(node)
+            print(f"Node '{node}' added.")
+        except ValueError as exc:
+            print(exc)
 
     def add_edge(self):
         u = input("From node: ").strip()
@@ -74,8 +87,44 @@ class Menu:
             w = float(input("Weight: ").strip())
             self.graph.add_edge(u, v, w)
             print(f"Edge {u} -- {v} ({w}) added.")
+        except ValueError as exc:
+            print(exc)
+
+    def remove_node(self):
+        node = input("Node to remove: ").strip()
+        if self.graph.remove_node(node):
+            print(f"Node '{node}' removed.")
+        else:
+            print(f"Node '{node}' does not exist.")
+
+    def remove_edge(self):
+        u = input("From node: ").strip()
+        v = input("To node: ").strip()
+        if self.graph.remove_edge(u, v):
+            print(f"Edge {u} -- {v} removed.")
+        else:
+            print(f"Edge {u} -- {v} does not exist.")
+
+    def load_sample_graph(self):
+        samples = list_sample_graphs()
+        if not samples:
+            print("No sample graphs found in src/data/.")
+            return
+
+        print("\nAvailable samples:")
+        for i, path in enumerate(samples, start=1):
+            print(f"  {i}. {path.stem}")
+
+        choice = input("Select sample number: ").strip()
+        try:
+            idx = int(choice) - 1
+            if idx < 0 or idx >= len(samples):
+                raise ValueError
+            self.graph = load_graph(samples[idx])
+            print(f"Loaded '{samples[idx].stem}' ({self.graph.order()} nodes, "
+                  f"{self.graph.size()} edges).")
         except ValueError:
-            print("Invalid weight.")
+            print("Invalid selection.")
 
     def display_graph(self):
         self.graph.display()
@@ -131,7 +180,13 @@ class Menu:
         for e in mst:
             print(f"{e.u} -- {e.v} ({e.weight})")
         print("Total Weight:", total)
-    
+
+        n = self.graph.order()
+        if n > 1 and len(mst) < n - 1:
+            print(
+                "Warning: Graph may be disconnected; MST does not span all nodes."
+            )
+
     def load_random_graph(self):
         from src.utils.graph_generator import generate_random_graph
 

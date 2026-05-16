@@ -1,0 +1,12 @@
+{
+  "nodes": ["Depot", "A", "B", "C", "D"],
+  "edges": [
+    {"u": "Depot", "v": "A", "weight": 4},
+    {"u": "Depot", "v": "B", "weight": 2},
+    {"u": "A", "v": "B", "weight": 1},
+    {"u": "A", "v": "C", "weight": 5},
+    {"u": "B", "v": "C", "weight": 8},
+    {"u": "B", "v": "D", "weight": 10},
+    {"u": "C", "v": "D", "weight": 2}
+  ]
+}
