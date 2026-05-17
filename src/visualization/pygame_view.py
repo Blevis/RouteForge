@@ -13,7 +13,9 @@ Edit controls
   Left-click   empty space     -> Add node
   Left-click   node            -> Select as edge start (highlighted green)
   Left-click   second node     -> Begin edge weight entry
-  Right-click                  -> Cancel current selection
+  Right-click   node           -> Remove node
+  Right-click   edge           -> Remove edge
+  Right-click   empty space    -> Cancel current selection
   Escape                       -> Cancel any in-progress action
   Backspace    (weight input)  -> Delete last character
   Enter        (weight input)  -> Confirm edge with typed weight
@@ -24,6 +26,8 @@ Algorithm controls (shown in sidebar when active)
   B            -> Run BFS  (prompts for start node via sidebar click)
   D            -> Run DFS  (prompts for start node via sidebar click)
   K            -> Run Dijkstra (prompts start + end via sidebar clicks)
+  P            -> Run Prim (prompts for start node via sidebar click)
+  U            -> Run Kruskal (runs immediately)
   Space        -> Play / Pause
   Right arrow  -> Step forward
   Left arrow   -> Step backward
@@ -50,6 +54,7 @@ import pygame
 
 from src.core.graph import Graph
 from src.core.validators import validate_weight
+from src.algorithms.kruskal import DisjointSet
 
 
 # ---------------------------------------------------------------------------
@@ -80,6 +85,7 @@ ALGO_ACTIVE       = (240, 240, 255)   # node being expanded this step - white
 ALGO_EDGE_USED    = ( 20, 160, 140)   # traversed edge - teal
 ALGO_PATH         = (255, 210,  50)   # Dijkstra final path - gold
 ALGO_PATH_NODE    = (255, 180,  20)   # nodes on final path
+ALGO_EDGE_REJECT  = (220,  70,  70)   # Kruskal rejected edge
 
 # Pick-mode highlight
 PICK_START_COLOR  = (30, 200, 110)
@@ -89,9 +95,10 @@ PICK_END_COLOR    = (220,  80,  80)
 # ---------------------------------------------------------------------------
 # Layout constants
 # ---------------------------------------------------------------------------
-NODE_RADIUS   = 22
-PANEL_WIDTH   = 240
-LAYOUT_RADIUS = 240
+NODE_RADIUS        = 22
+PANEL_WIDTH        = 240
+LAYOUT_RADIUS      = 240
+EDGE_HIT_THRESHOLD = 10
 
 # Playback
 DEFAULT_FPS_ALGO  = 2      # steps per second at default speed
@@ -115,6 +122,9 @@ class AlgoStep:
     dist_labels   - optional {node: distance_str} for Dijkstra
     path_nodes    - nodes on the final shortest path (Dijkstra last step)
     path_edges    - edges on the final shortest path
+    mst_edges     - edges accepted into the MST so far
+    rejected_edge - Kruskal edge skipped (cycle)
+    total_weight  - running MST weight sum
     description   - human-readable line shown in the sidebar
     """
     visited      : Set[str]                    = field(default_factory=set)
@@ -125,6 +135,9 @@ class AlgoStep:
     dist_labels  : Dict[str, str]              = field(default_factory=dict)
     path_nodes   : Set[str]                    = field(default_factory=set)
     path_edges   : Set[Tuple[str,str]]         = field(default_factory=set)
+    mst_edges    : Set[Tuple[str,str]]         = field(default_factory=set)
+    rejected_edge: Optional[Tuple[str,str]]    = None
+    total_weight : float                       = 0.0
     description  : str                         = ""
 
 
@@ -309,6 +322,137 @@ def _dijkstra_steps(graph: Graph, start: str, end: str) -> List[AlgoStep]:
     return steps
 
 
+def _prim_steps(graph: Graph, start: str) -> List[AlgoStep]:
+    if not graph.has_node(start):
+        raise KeyError(f"Start node '{start}' does not exist.")
+
+    steps: List[AlgoStep] = []
+    visited: Set[str] = {start}
+    mst_edge_set: Set[Tuple[str, str]] = set()
+    total_weight = 0.0
+    pq: List[Tuple[float, str, str]] = []
+
+    for neighbor, weight in graph.neighbors(start):
+        heapq.heappush(pq, (weight, start, neighbor))
+
+    def frontier_from_pq() -> Set[str]:
+        return {n for _, _, n in pq if n not in visited}
+
+    steps.append(AlgoStep(
+        visited={start},
+        frontier=frontier_from_pq(),
+        active_node=start,
+        description=f"Start Prim at '{start}'",
+    ))
+
+    while pq and len(visited) < graph.order():
+        weight, u, v = heapq.heappop(pq)
+        edge = (min(u, v), max(u, v))
+
+        if v in visited:
+            steps.append(AlgoStep(
+                visited=set(visited),
+                frontier=frontier_from_pq(),
+                active_edge=edge,
+                rejected_edge=edge,
+                mst_edges=set(mst_edge_set),
+                total_weight=total_weight,
+                description=f"Skip stale '{u}'-'{v}' (already in tree)",
+            ))
+            continue
+
+        visited.add(v)
+        mst_edge_set.add(edge)
+        total_weight += weight
+
+        for neighbor, w in graph.neighbors(v):
+            if neighbor not in visited:
+                heapq.heappush(pq, (w, v, neighbor))
+
+        steps.append(AlgoStep(
+            visited=set(visited),
+            frontier=frontier_from_pq(),
+            active_node=v,
+            active_edge=edge,
+            mst_edges=set(mst_edge_set),
+            total_weight=total_weight,
+            description=f"Add {u}-{v} (w={weight}), total={total_weight}",
+        ))
+
+    if graph.order() > 1 and len(mst_edge_set) < graph.order() - 1:
+        msg = (
+            f"Partial MST (disconnected). Weight={total_weight}"
+        )
+    else:
+        msg = f"MST complete. Total weight={total_weight}"
+
+    steps.append(AlgoStep(
+        visited=set(visited),
+        mst_edges=set(mst_edge_set),
+        total_weight=total_weight,
+        description=msg,
+    ))
+    return steps
+
+
+def _kruskal_steps(graph: Graph) -> List[AlgoStep]:
+    nodes = graph.nodes()
+    if not nodes:
+        return [AlgoStep(description="Graph is empty.")]
+
+    ds = DisjointSet(nodes)
+    edges = sorted(graph.edges(), key=lambda e: e.weight)
+    mst_edge_set: Set[Tuple[str, str]] = set()
+    total_weight = 0.0
+    steps: List[AlgoStep] = []
+
+    for edge in edges:
+        key = (min(edge.u, edge.v), max(edge.u, edge.v))
+        steps.append(AlgoStep(
+            active_edge=key,
+            mst_edges=set(mst_edge_set),
+            total_weight=total_weight,
+            description=f"Consider {edge.u}-{edge.v} (w={edge.weight})",
+        ))
+
+        if ds.union(edge.u, edge.v):
+            mst_edge_set.add(key)
+            total_weight += edge.weight
+            steps.append(AlgoStep(
+                active_edge=key,
+                mst_edges=set(mst_edge_set),
+                total_weight=total_weight,
+                description=f"Accept {edge.u}-{edge.v}, total={total_weight}",
+            ))
+            if len(mst_edge_set) == len(nodes) - 1:
+                break
+        else:
+            steps.append(AlgoStep(
+                rejected_edge=key,
+                mst_edges=set(mst_edge_set),
+                total_weight=total_weight,
+                description=f"Reject {edge.u}-{edge.v} (cycle)",
+            ))
+
+    steps.append(AlgoStep(
+        mst_edges=set(mst_edge_set),
+        total_weight=total_weight,
+        description=f"MST complete. Total weight={total_weight}",
+    ))
+    return steps
+
+
+def _point_segment_dist(
+    px: float, py: float, x1: float, y1: float, x2: float, y2: float
+) -> float:
+    dx, dy = x2 - x1, y2 - y1
+    len_sq = dx * dx + dy * dy
+    if len_sq == 0:
+        return math.hypot(px - x1, py - y1)
+    t = max(0.0, min(1.0, ((px - x1) * dx + (py - y1) * dy) / len_sq))
+    return math.hypot(px - (x1 + t * dx), py - (y1 + t * dy))
+
+
 # ---------------------------------------------------------------------------
 # AlgoPlayer - owns all playback state
 # ---------------------------------------------------------------------------
@@ -448,8 +592,27 @@ class GraphVisualizer:
         self._pending_algo = algo
         self._pick_start   = None
         self._mode         = "pick_start"
-        label = {"bfs": "BFS", "dfs": "DFS", "dijkstra": "Dijkstra"}[algo]
+        labels = {
+            "bfs": "BFS",
+            "dfs": "DFS",
+            "dijkstra": "Dijkstra",
+            "prim": "Prim",
+        }
+        label = labels[algo]
         self._set_status(f"{label}: click a START node on the canvas.", duration=999)
+
+    def _launch_kruskal(self):
+        """Build Kruskal steps and enter algo mode (no node pick)."""
+        if not self.graph.nodes():
+            self._set_status("Graph is empty.", ok=False)
+            return
+        self._cancel_action()
+        self._pending_algo = "kruskal"
+        steps = _kruskal_steps(self.graph)
+        name = "Kruskal MST"
+        self._algo_player = AlgoPlayer(algo_name=name, steps=steps)
+        self._mode = "algo"
+        self._set_status(f"{name} - Space to play, arrows to step, R to reset", duration=300)
 
     def _launch_algo(self, start: str, end: Optional[str] = None):
         """Build the step list and enter algo mode."""
@@ -461,6 +624,12 @@ class GraphVisualizer:
             elif algo == "dfs":
                 steps = _dfs_steps(self.graph, start)
                 name  = f"DFS from '{start}'"
+            elif algo == "prim":
+                steps = _prim_steps(self.graph, start)
+                name  = f"Prim from '{start}'"
+            elif algo == "kruskal":
+                steps = _kruskal_steps(self.graph)
+                name  = "Kruskal MST"
             else:  # dijkstra
                 steps = _dijkstra_steps(self.graph, start, end)
                 name  = f"Dijkstra '{start}' -> '{end}'"
@@ -498,11 +667,15 @@ class GraphVisualizer:
             ("START EDGE",     "Left-click a node"),
             ("FINISH EDGE",    "Left-click second node"),
             ("CONFIRM WEIGHT", "Type weight + Enter"),
-            ("CANCEL",         "Escape / Right-click"),
+            ("DELETE NODE",    "Right-click node"),
+            ("DELETE EDGE",    "Right-click edge"),
+            ("CANCEL",         "Right-click empty / Esc"),
             ("",               ""),
             ("RUN BFS",        "Press  B"),
             ("RUN DFS",        "Press  D"),
             ("RUN DIJKSTRA",   "Press  K"),
+            ("RUN PRIM",       "Press  P"),
+            ("RUN KRUSKAL",    "Press  U"),
         ]
         y = 72
         for label, desc in instructions:
@@ -518,9 +691,12 @@ class GraphVisualizer:
 
     def _draw_panel_pick(self):
         """Sidebar content when picking start/end nodes."""
-        algo_label = {"bfs": "BFS", "dfs": "DFS", "dijkstra": "Dijkstra"}.get(
-            self._pending_algo, ""
-        )
+        algo_label = {
+            "bfs": "BFS",
+            "dfs": "DFS",
+            "dijkstra": "Dijkstra",
+            "prim": "Prim",
+        }.get(self._pending_algo, "")
         self.screen.blit(
             self.font_title.render(algo_label, True, ALGO_FRONTIER), (15, 72)
         )
@@ -591,6 +767,9 @@ class GraphVisualizer:
         ]
         if p.algo_name.startswith("Dijkstra"):
             legend.append((ALGO_PATH_NODE, "Shortest path"))
+        if p.algo_name.startswith("Prim") or p.algo_name.startswith("Kruskal"):
+            legend.append((ALGO_EDGE_USED, "MST edge"))
+            legend.append((ALGO_EDGE_REJECT, "Rejected edge"))
 
         for color, label in legend:
             pygame.draw.circle(self.screen, color, (22, y + 6), 6)
@@ -673,6 +852,12 @@ class GraphVisualizer:
                     if edge in step.path_edges:
                         color     = ALGO_PATH
                         thickness = 4
+                    elif step.rejected_edge and edge == step.rejected_edge:
+                        color     = ALGO_EDGE_REJECT
+                        thickness = 3
+                    elif edge in step.mst_edges:
+                        color     = ALGO_EDGE_USED
+                        thickness = 3
                     elif edge == step.active_edge:
                         color     = (255, 255, 255)
                         thickness = 3
@@ -820,6 +1005,58 @@ class GraphVisualizer:
                 return node
         return None
 
+    def _edge_at(self, x, y) -> Optional[Tuple[str, str]]:
+        best: Optional[Tuple[str, str]] = None
+        best_dist = EDGE_HIT_THRESHOLD
+
+        for u in self.graph.nodes():
+            for v, _ in self.graph.neighbors(u):
+                if u >= v:
+                    continue
+                p1 = self.graph.get_position(u)
+                p2 = self.graph.get_position(v)
+                if p1 is None or p2 is None:
+                    continue
+                d = _point_segment_dist(x, y, p1[0], p1[1], p2[0], p2[1])
+                if d < best_dist:
+                    best_dist = d
+                    best = (min(u, v), max(u, v))
+        return best
+
+    def _handle_right_click(self, mx: int, my: int) -> None:
+        if self._mode == "algo":
+            return
+
+        if self.input_mode:
+            self._cancel_action()
+            self._set_status("Edge creation cancelled.")
+            return
+
+        if self._mode in ("pick_start", "pick_end"):
+            self._reset_to_edit()
+            return
+
+        if self._mode != "edit" or mx < PANEL_WIDTH:
+            return
+
+        node = self._node_at(mx, my)
+        if node is not None:
+            if self.graph.remove_node(node):
+                if self.edge_start == node:
+                    self.edge_start = None
+                self._set_status(f"Node '{node}' removed.")
+            return
+
+        edge = self._edge_at(mx, my)
+        if edge is not None:
+            u, v = edge
+            if self.graph.remove_edge(u, v):
+                self._set_status(f"Edge {u} - {v} removed.")
+            return
+
+        self._cancel_action()
+        self._set_status("Selection cleared.")
+
     # -----------------------------------------------------------------------
     # Weight parsing
     # -----------------------------------------------------------------------
@@ -876,13 +1113,7 @@ class GraphVisualizer:
                 if event.button == 2:         # middle click
                     continue
                 if event.button == 3:         # right click
-                    if self._mode == "algo":
-                        pass   # right-click does nothing in algo mode
-                    else:
-                        self._cancel_action()
-                        if self._mode in ("pick_start", "pick_end"):
-                            self._reset_to_edit()
-                        self._set_status("Selection cleared.")
+                    self._handle_right_click(mx, my)
                     continue
                 if event.button != 1:
                     continue
@@ -937,6 +1168,10 @@ class GraphVisualizer:
                 self._start_pick("dfs")
             elif key == pygame.K_k:
                 self._start_pick("dijkstra")
+            elif key == pygame.K_p:
+                self._start_pick("prim")
+            elif key == pygame.K_u:
+                self._launch_kruskal()
             elif key == pygame.K_r:
                 self._reset_to_edit()
 
@@ -948,6 +1183,8 @@ class GraphVisualizer:
                 self._start_pick("dfs")
             elif key == pygame.K_k:
                 self._start_pick("dijkstra")
+            elif key == pygame.K_p:
+                self._start_pick("prim")
 
     def _handle_left_click(self, x, y):
         clicked = self._node_at(x, y)

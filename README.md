@@ -7,7 +7,7 @@ Developed as part of a Data Structures & Algorithms final project.
 
 ---
 
-## 👥 Team
+## Team
 - Blevis Allushi  
 - Kristian Seraj  
 - Renato Zotaj  
@@ -15,7 +15,7 @@ Developed as part of a Data Structures & Algorithms final project.
 
 ---
 
-## 📌 Project Overview
+## Project Overview
 
 RouteForge simulates a delivery network where:
 - **Nodes** represent locations (warehouses, depots, delivery points)
@@ -30,12 +30,40 @@ The system allows users to:
 
 ---
 
-## ⚙️ Core Features
+## How to Run
+
+**Requirements:** Python 3.12+ (see `.python-version` if using pyenv).
+
+```bash
+cd RouteForge
+
+# Create and activate a virtual environment
+python3.12 -m venv venv
+source venv/bin/activate          # macOS/Linux
+# venv\Scripts\activate           # Windows
+
+pip install -r requirements.txt
+
+python main.py
+```
+
+Use menu option **10** for the pygame graph visualizer (requires `pygame`). Options **11–12** remove nodes/edges; option **13** loads a sample graph from `src/data/`.
+
+Run tests:
+
+```bash
+pytest
+```
+
+---
+
+## Core Features
 
 ### Graph Operations
 - Add / remove nodes
 - Add / remove edges
 - Display adjacency structure
+- Load sample datasets
 - Handle disconnected graphs
 
 ### Traversal Algorithms
@@ -43,13 +71,13 @@ The system allows users to:
 - Depth-First Search (DFS)
 
 ### Optimization Algorithms
-- Dijkstra’s Algorithm (Shortest Path)
-- Prim’s Algorithm (Minimum Spanning Tree)
-- Kruskal’s Algorithm (Minimum Spanning Tree alternative)
+- Dijkstra's Algorithm (Shortest Path)
+- Prim's Algorithm (Minimum Spanning Tree)
+- Kruskal's Algorithm (Minimum Spanning Tree alternative)
 
 ---
 
-## 🧠 Key Concepts Demonstrated
+## Key Concepts Demonstrated
 - Graph representation (adjacency list)
 - Greedy algorithms
 - Traversal techniques
@@ -59,21 +87,20 @@ The system allows users to:
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```text
-routeforge/
-│
+RouteForge/
 ├── src/
-│   ├── core/              # Graph, Node, Edge implementations
-│   ├── algorithms/       # BFS, DFS, Dijkstra, MST algorithms
-│   ├── ui/               # Console-based menu system
-│   ├── utils/           # Helper functions
-│   └── data/            # Sample datasets
-│
-├── tests/               # Unit tests
-├── docs/                # Report, diagrams, documentation
-├── assets/              # Images, visuals
-├── main.py              # Entry point
+│   ├── core/              # Graph, Edge, validators
+│   ├── algorithms/        # BFS, DFS, Dijkstra, MST
+│   ├── ui/                # Console menu
+│   ├── utils/             # graph_generator, graph_io
+│   ├── data/              # Sample JSON graphs
+│   └── visualization/     # pygame visualizer
+├── tests/                 # pytest unit tests
+├── docs/                  # Academic report (LaTeX)
+├── main.py
 ├── requirements.txt
 └── README.md
+```
