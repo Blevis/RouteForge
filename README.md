@@ -8,7 +8,7 @@ RouteForge is a Python-based graph algorithms project built as part of a Year 2 
 
 ## Team
 
-| Name | |
+| Name |
 |---|---|
 | Blevis Allushi |
 | Kristian Seraj |
